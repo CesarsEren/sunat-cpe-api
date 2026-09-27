@@ -52,6 +52,10 @@ logs/
 target/boot_*.log
 target/boot_*.err
 
+# --- Output del filtro Maven multi-empresa ---
+# (generado por maven-resources-plugin desde Empresas/${empresa}/ hacia config/)
+config/
+
 # --- Archivos temporales del SO ---
 .DS_Store
 Thumbs.db
