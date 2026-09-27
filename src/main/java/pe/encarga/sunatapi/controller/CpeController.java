@@ -26,6 +26,13 @@ import pe.encarga.sunatapi.service.SunatSendResult;
 import pe.encarga.sunatapi.service.SunatSendService;
 import pe.encarga.sunatapi.service.SunatStatusResult;
 
+/**
+ * Controller de envio directo a SUNAT (BillService SOAP).
+ *
+ * <p>Reemplaza al intermediario GRT. Credenciales SOL via query params
+ * (mismo patron que el codigo legacy de back-erp):
+ * {@code ?usuario=<ruc+MODDATOS>&contrasena=<password>}.</p>
+ */
 @RestController
 @RequestMapping("/api/v1/cpe")
 public class CpeController {
@@ -45,10 +52,9 @@ public class CpeController {
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Map<String, Object>> send(
             @RequestPart("file") MultipartFile file,
-            @RequestParam("username") String username,
-            @RequestParam("password") String password,
-            @RequestParam(value = "production", defaultValue = "false") boolean production,
-            @RequestParam(value = "partyType", required = false) String partyType) {
+            @RequestParam("usuario") String usuario,
+            @RequestParam("contrasena") String contrasena,
+            @RequestParam(value = "production", defaultValue = "false") boolean production) {
 
         if (file == null || file.isEmpty()) {
             return error(HttpStatus.BAD_REQUEST, "MISSING_FILE",
@@ -61,8 +67,7 @@ public class CpeController {
             temp = File.createTempFile("cpe-", "-" + System.currentTimeMillis() + ".zip");
             file.transferTo(temp);
 
-            SunatSendResult result = sunatSendService.sendBill(temp, original, username, password, production,
-                    partyType);
+            SunatSendResult result = sunatSendService.sendBill(temp, original, usuario, contrasena, production, null);
             return ResponseEntity.status(result.isSuccess() ? HttpStatus.OK : HttpStatus.BAD_GATEWAY)
                     .body(toJson(result));
 
@@ -85,6 +90,9 @@ public class CpeController {
     public ResponseEntity<Map<String, Object>> sendBase64(@RequestBody Map<String, Object> body) {
         Object fileB64Obj = body.get("fileBase64");
         Object filenameObj = body.get("filename");
+        Object usuarioObj = body.get("usuario");
+        Object contrasenaObj = body.get("contrasena");
+        Object productionObj = body.get("production");
 
         if (fileB64Obj == null || !(fileB64Obj instanceof String)) {
             return error(HttpStatus.BAD_REQUEST, "MISSING_FILE",
@@ -99,13 +107,11 @@ public class CpeController {
             temp = File.createTempFile("cpe-", "-" + System.currentTimeMillis() + ".zip");
             Files.write(temp.toPath(), zipBytes);
 
-            boolean production = Boolean.TRUE.equals(body.get("production"));
-            String username = str(body.get("username"));
-            String password = str(body.get("password"));
-            String partyType = str(body.get("partyType"));
+            String usuario = usuarioObj == null ? null : String.valueOf(usuarioObj);
+            String contrasena = contrasenaObj == null ? null : String.valueOf(contrasenaObj);
+            boolean production = Boolean.TRUE.equals(productionObj);
 
-            SunatSendResult result = sunatSendService.sendBill(temp, filename, username, password, production,
-                    partyType);
+            SunatSendResult result = sunatSendService.sendBill(temp, filename, usuario, contrasena, production, null);
             return ResponseEntity.status(result.isSuccess() ? HttpStatus.OK : HttpStatus.BAD_GATEWAY)
                     .body(toJson(result));
 
@@ -126,14 +132,14 @@ public class CpeController {
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Map<String, Object>> status(@RequestBody Map<String, Object> body) {
         String ticket = str(body.get("ticket"));
-        String username = str(body.get("username"));
-        String password = str(body.get("password"));
+        String usuario = str(body.get("usuario"));
+        String contrasena = str(body.get("contrasena"));
         boolean production = Boolean.TRUE.equals(body.get("production"));
         if (production == false && body.get("production") == null) {
             production = sunatProperties.isDefaultProduction();
         }
 
-        SunatStatusResult result = sunatSendService.getStatus(ticket, username, password, production);
+        SunatStatusResult result = sunatSendService.getStatus(ticket, usuario, contrasena, production);
 
         Map<String, Object> json = new HashMap<>();
         json.put("success", result.isSuccess());

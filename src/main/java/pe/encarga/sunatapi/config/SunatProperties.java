@@ -15,14 +15,6 @@ public class SunatProperties {
     @Value("${sunat.soap.request.timeout.ms:60000}")
     private int requestTimeoutMs;
 
-    /** Username SOL (RUC + MODDATOS). Viene de variable de entorno SOL_USER. */
-    @Value("${sunat.sol.user:}")
-    private String solUser;
-
-    /** Password SOL. Viene de variable de entorno SOL_PASSWORD. */
-    @Value("${sunat.sol.password:}")
-    private String solPassword;
-
     public boolean isDefaultProduction() {
         return defaultProduction;
     }
@@ -45,21 +37,5 @@ public class SunatProperties {
 
     public void setRequestTimeoutMs(int requestTimeoutMs) {
         this.requestTimeoutMs = requestTimeoutMs;
-    }
-
-    public String getSolUser() {
-        return solUser;
-    }
-
-    public void setSolUser(String solUser) {
-        this.solUser = solUser;
-    }
-
-    public String getSolPassword() {
-        return solPassword;
-    }
-
-    public void setSolPassword(String solPassword) {
-        this.solPassword = solPassword;
     }
 }

@@ -96,8 +96,8 @@ public class CpeControllerTest {
     @Test
     public void sendMultipart_sinArchivo_retorna415() throws Exception {
         mockMvc.perform(post("/api/v1/cpe/send")
-                        .param("username", "u")
-                        .param("password", "p"))
+                        .param("usuario", "u")
+                        .param("contrasena", "p"))
                 .andExpect(status().isUnsupportedMediaType());
     }
 
@@ -109,8 +109,8 @@ public class CpeControllerTest {
 
         mockMvc.perform(fileUpload("/api/v1/cpe/send")
                         .file("file", java.nio.file.Files.readAllBytes(zip.toPath()))
-                        .param("username", "u")
-                        .param("password", "p")
+                        .param("usuario", "u")
+                        .param("contrasena", "p")
                         .param("production", "false"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
@@ -128,8 +128,8 @@ public class CpeControllerTest {
 
         mockMvc.perform(fileUpload("/api/v1/cpe/send")
                         .file("file", java.nio.file.Files.readAllBytes(zip.toPath()))
-                        .param("username", "u")
-                        .param("password", "p"))
+                        .param("usuario", "u")
+                        .param("contrasena", "p"))
                 .andExpect(status().isBadGateway())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.errorCode").value("INVALID_FILENAME"));
@@ -143,8 +143,8 @@ public class CpeControllerTest {
 
         mockMvc.perform(fileUpload("/api/v1/cpe/send")
                         .file("file", java.nio.file.Files.readAllBytes(zip.toPath()))
-                        .param("username", "u")
-                        .param("password", "p"))
+                        .param("usuario", "u")
+                        .param("contrasena", "p"))
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.errorCode").value("UNEXPECTED_ERROR"));
     }
@@ -162,94 +162,77 @@ public class CpeControllerTest {
     public void sendBase64_base64Invalido_retorna400InvalidBase64() throws Exception {
         mockMvc.perform(post("/api/v1/cpe/send-base64")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"filename\":\"x.zip\",\"fileBase64\":\"@@@no-es-base64@@@\",\"username\":\"u\",\"password\":\"p\"}"))
+                        .content("{\"filename\":\"x.zip\",\"fileBase64\":\"@@@no-es-base64@@@\",\"usuario\":\"u\",\"contrasena\":\"p\"}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errorCode").value("INVALID_BASE64"));
     }
 
     @Test
-    public void sendBase64_exitoso_retorna200ConCdr() throws Exception {
-        String validBase64 = java.util.Base64.getEncoder().encodeToString(new byte[]{1, 2, 3, 4});
+    public void sendBase64_exitoso_retorna200() throws Exception {
+        File zip = createZipFile("20600520033-01-F001-1.zip");
+        String b64 = java.util.Base64.getEncoder().encodeToString(
+                java.nio.file.Files.readAllBytes(zip.toPath()));
         when(sendService.sendBill(any(File.class), anyString(), anyString(), anyString(), anyBoolean(), any()))
-                .thenReturn(ok("20600520033-01-F001-00000001.zip"));
+                .thenReturn(ok("20600520033-01-F001-1.zip"));
 
         mockMvc.perform(post("/api/v1/cpe/send-base64")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"filename\":\"20600520033-01-F001-00000001.zip\","
-                                + "\"fileBase64\":\"" + validBase64 + "\","
-                                + "\"username\":\"u\",\"password\":\"p\",\"production\":false}"))
+                        .content("{\"filename\":\"20600520033-01-F001-1.zip\",\"fileBase64\":\""
+                                + b64 + "\",\"usuario\":\"u\",\"contrasena\":\"p\",\"production\":false}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.responseCode").value("0"));
+                .andExpect(jsonPath("$.cdr.filename").value("R-20600520033-01-F001-1.zip"));
     }
 
     @Test
-    public void status_ticketVacio_retorna400() throws Exception {
-        SunatStatusResult mockResult = new SunatStatusResult();
-        mockResult.setSuccess(false);
-        mockResult.setTicket("");
-        mockResult.setEnvironment("BETA");
-        mockResult.setErrorCode("MISSING_TICKET");
-        mockResult.setErrorMessage("Debe proporcionar el numero de ticket.");
-        when(sendService.getStatus(anyString(), anyString(), anyString(), anyBoolean()))
-                .thenReturn(mockResult);
+    public void sendBase64_filenameInvalido_retorna502() throws Exception {
+        File zip = createZipFile("bad.zip");
+        String b64 = java.util.Base64.getEncoder().encodeToString(
+                java.nio.file.Files.readAllBytes(zip.toPath()));
+        when(sendService.sendBill(any(File.class), anyString(), anyString(), anyString(), anyBoolean(), any()))
+                .thenReturn(fail("INVALID_FILENAME", "Nombre de archivo invalido"));
+
+        mockMvc.perform(post("/api/v1/cpe/send-base64")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"filename\":\"bad.zip\",\"fileBase64\":\"" + b64
+                                + "\",\"usuario\":\"u\",\"contrasena\":\"p\"}"))
+                .andExpect(status().isBadGateway())
+                .andExpect(jsonPath("$.errorCode").value("INVALID_FILENAME"));
+    }
+
+    @Test
+    public void status_sinTicket_retornaOkConError() throws Exception {
+        SunatStatusResult sr = new SunatStatusResult();
+        sr.setSuccess(false);
+        sr.setEnvironment("BETA");
+        sr.setErrorCode("MISSING_TICKET");
+        sr.setErrorMessage("Debe proporcionar el numero de ticket.");
+        org.mockito.Mockito.when(sendService.getStatus(anyString(), anyString(), anyString(), anyBoolean()))
+                .thenReturn(sr);
 
         mockMvc.perform(post("/api/v1/cpe/status")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"ticket\":\"\",\"username\":\"u\",\"password\":\"p\"}"))
+                        .content("{\"usuario\":\"u\",\"contrasena\":\"p\"}"))
                 .andExpect(status().isBadGateway())
                 .andExpect(jsonPath("$.errorCode").value("MISSING_TICKET"));
     }
 
     @Test
-    public void status_exitoso_retorna200() throws Exception {
-        SunatStatusResult mockResult = new SunatStatusResult();
-        mockResult.setSuccess(true);
-        mockResult.setTicket("tkt");
-        mockResult.setEnvironment("BETA");
-        mockResult.setStatusCode("0");
-        mockResult.setStatusMessage("Resumen registrado");
-        when(sendService.getStatus(anyString(), anyString(), anyString(), anyBoolean()))
-                .thenReturn(mockResult);
+    public void status_conTicket_retornaOk() throws Exception {
+        SunatStatusResult sr = new SunatStatusResult();
+        sr.setSuccess(true);
+        sr.setTicket("123");
+        sr.setStatusCode("0");
+        sr.setStatusMessage("OK");
+        sr.setEnvironment("BETA");
+        org.mockito.Mockito.when(sendService.getStatus(anyString(), anyString(), anyString(), anyBoolean()))
+                .thenReturn(sr);
 
         mockMvc.perform(post("/api/v1/cpe/status")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"ticket\":\"tkt\",\"username\":\"u\",\"password\":\"p\",\"production\":false}"))
+                        .content("{\"ticket\":\"123\",\"usuario\":\"u\",\"contrasena\":\"p\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.statusCode").value("0"))
-                .andExpect(jsonPath("$.ticket").value("tkt"));
-    }
-
-    @Test
-    public void status_falla_retorna502() throws Exception {
-        SunatStatusResult mockResult = new SunatStatusResult();
-        mockResult.setSuccess(false);
-        mockResult.setTicket("tkt");
-        mockResult.setEnvironment("BETA");
-        mockResult.setErrorCode("SOAP_FAULT");
-        mockResult.setErrorMessage("server error");
-        when(sendService.getStatus(anyString(), anyString(), anyString(), anyBoolean()))
-                .thenReturn(mockResult);
-
-        mockMvc.perform(post("/api/v1/cpe/status")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"ticket\":\"tkt\",\"username\":\"u\",\"password\":\"p\",\"production\":false}"))
-                .andExpect(status().isBadGateway())
-                .andExpect(jsonPath("$.errorCode").value("SOAP_FAULT"));
-    }
-
-    @Test
-    public void status_productionNullUsaDefaultProperties() throws Exception {
-        SunatStatusResult mockResult = new SunatStatusResult();
-        mockResult.setSuccess(true);
-        mockResult.setStatusCode("0");
-        when(sendService.getStatus(anyString(), anyString(), anyString(), anyBoolean()))
-                .thenReturn(mockResult);
-
-        mockMvc.perform(post("/api/v1/cpe/status")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"ticket\":\"tkt\",\"username\":\"u\",\"password\":\"p\"}"))
-                .andExpect(status().isOk());
+                .andExpect(jsonPath("$.statusCode").value("0"));
     }
 }
