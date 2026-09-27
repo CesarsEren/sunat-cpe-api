@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: pe.encarga.sunatapi.SunatCpeApiApplicationTests
+-------------------------------------------------------------------------------
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.86 sec - in pe.encarga.sunatapi.SunatCpeApiApplicationTests
