@@ -8,10 +8,7 @@ import org.junit.Test;
 public class ZipNameValidatorTest {
 
     private boolean matches(String name) {
-        if (name == null) {
-            return false;
-        }
-        return SunatSendService.ZIP_NAME_PATTERN.matcher(name).matches();
+        return ZipNameValidator.isValid(name);
     }
 
     @Test
@@ -57,8 +54,11 @@ public class ZipNameValidatorTest {
     }
 
     @Test
-    public void tipo07NoEsValido() {
+    public void tipo07SigueSiendoInvalidoPeroEsUnTipoInternoDistinto() {
+        // El nombre del zip para NC usa TIPO=06 (catálogo de archivos SUNAT),
+        // aunque el tipo interno del CPE sea 07 (UBL 2.1).
         assertFalse(matches("20600520033-07-F001-1.zip"));
+        assertTrue(matches("20600520033-06-F001-1.zip"));
     }
 
     @Test

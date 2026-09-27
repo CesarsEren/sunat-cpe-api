@@ -1,7 +1,6 @@
 package pe.encarga.sunatapi.service;
 
 import java.io.File;
-import java.util.regex.Pattern;
 
 import javax.xml.ws.soap.SOAPFaultException;
 
@@ -15,9 +14,6 @@ import org.springframework.stereotype.Service;
 public class SunatSendService {
 
     private static final Log log = LogFactory.getLog(SunatSendService.class);
-
-    static final Pattern ZIP_NAME_PATTERN = Pattern
-            .compile("^\\d{11}-(01|03|05|06)-[A-Z0-9]{4}-\\d{1,8}\\.zip$");
 
     static final int MAX_DESCRIPTION_LENGTH = 500;
 
@@ -49,7 +45,7 @@ public class SunatSendService {
                     "El archivo .zip no existe o no es accesible: " + zipFile.getAbsolutePath());
         }
 
-        if (!ZIP_NAME_PATTERN.matcher(filename).matches()) {
+        if (!ZipNameValidator.isValid(filename)) {
             return fail(result, "INVALID_FILENAME",
                     "Nombre de archivo invalido. Formato esperado: "
                             + "RUC-TIPO-SERIE-NUMERO.zip (TIPO=01 Factura, 03 Boleta, 05 Nota Debito, 06 Nota Credito). "
