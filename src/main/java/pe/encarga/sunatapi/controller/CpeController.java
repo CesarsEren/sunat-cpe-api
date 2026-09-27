@@ -32,6 +32,9 @@ import pe.encarga.sunatapi.service.SunatStatusResult;
  * <p>Reemplaza al intermediario GRT. Credenciales SOL via query params
  * (mismo patron que el codigo legacy de back-erp):
  * {@code ?usuario=<ruc+MODDATOS>&contrasena=<password>}.</p>
+ *
+ * <p>El ambiente (Beta vs Produccion) se configura en el servidor
+ * via {@code sunat.production} (env var o properties), NO se recibe del cliente.</p>
  */
 @RestController
 @RequestMapping("/api/v1/cpe")
@@ -53,8 +56,7 @@ public class CpeController {
     public ResponseEntity<Map<String, Object>> send(
             @RequestPart("file") MultipartFile file,
             @RequestParam("usuario") String usuario,
-            @RequestParam("contrasena") String contrasena,
-            @RequestParam(value = "production", defaultValue = "false") boolean production) {
+            @RequestParam("contrasena") String contrasena) {
 
         if (file == null || file.isEmpty()) {
             return error(HttpStatus.BAD_REQUEST, "MISSING_FILE",
@@ -67,7 +69,10 @@ public class CpeController {
             temp = File.createTempFile("cpe-", "-" + System.currentTimeMillis() + ".zip");
             file.transferTo(temp);
 
-            SunatSendResult result = sunatSendService.sendBill(temp, original, usuario, contrasena, production, null);
+            // El ambiente (Beta/Produccion) se decide por env vars en sunat-cpe-api,
+            // NO se recibe del cliente. Ver SunatProperties.
+            SunatSendResult result = sunatSendService.sendBill(temp, original, usuario, contrasena,
+                    sunatProperties.isDefaultProduction(), null);
             return ResponseEntity.status(result.isSuccess() ? HttpStatus.OK : HttpStatus.BAD_GATEWAY)
                     .body(toJson(result));
 
@@ -92,7 +97,6 @@ public class CpeController {
         Object filenameObj = body.get("filename");
         Object usuarioObj = body.get("usuario");
         Object contrasenaObj = body.get("contrasena");
-        Object productionObj = body.get("production");
 
         if (fileB64Obj == null || !(fileB64Obj instanceof String)) {
             return error(HttpStatus.BAD_REQUEST, "MISSING_FILE",
@@ -109,9 +113,10 @@ public class CpeController {
 
             String usuario = usuarioObj == null ? null : String.valueOf(usuarioObj);
             String contrasena = contrasenaObj == null ? null : String.valueOf(contrasenaObj);
-            boolean production = Boolean.TRUE.equals(productionObj);
 
-            SunatSendResult result = sunatSendService.sendBill(temp, filename, usuario, contrasena, production, null);
+            // Ambiente por env vars
+            SunatSendResult result = sunatSendService.sendBill(temp, filename, usuario, contrasena,
+                    sunatProperties.isDefaultProduction(), null);
             return ResponseEntity.status(result.isSuccess() ? HttpStatus.OK : HttpStatus.BAD_GATEWAY)
                     .body(toJson(result));
 
@@ -134,12 +139,10 @@ public class CpeController {
         String ticket = str(body.get("ticket"));
         String usuario = str(body.get("usuario"));
         String contrasena = str(body.get("contrasena"));
-        boolean production = Boolean.TRUE.equals(body.get("production"));
-        if (production == false && body.get("production") == null) {
-            production = sunatProperties.isDefaultProduction();
-        }
 
-        SunatStatusResult result = sunatSendService.getStatus(ticket, usuario, contrasena, production);
+        // Ambiente por env vars (no se recibe del cliente)
+        SunatStatusResult result = sunatSendService.getStatus(ticket, usuario, contrasena,
+                sunatProperties.isDefaultProduction());
 
         Map<String, Object> json = new HashMap<>();
         json.put("success", result.isSuccess());

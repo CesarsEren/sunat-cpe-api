@@ -110,8 +110,7 @@ public class CpeControllerTest {
         mockMvc.perform(fileUpload("/api/v1/cpe/send")
                         .file("file", java.nio.file.Files.readAllBytes(zip.toPath()))
                         .param("usuario", "u")
-                        .param("contrasena", "p")
-                        .param("production", "false"))
+                        .param("contrasena", "p"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.responseCode").value("0"))
@@ -178,7 +177,7 @@ public class CpeControllerTest {
         mockMvc.perform(post("/api/v1/cpe/send-base64")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"filename\":\"20600520033-01-F001-1.zip\",\"fileBase64\":\""
-                                + b64 + "\",\"usuario\":\"u\",\"contrasena\":\"p\",\"production\":false}"))
+                                + b64 + "\",\"usuario\":\"u\",\"contrasena\":\"p\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.cdr.filename").value("R-20600520033-01-F001-1.zip"));
