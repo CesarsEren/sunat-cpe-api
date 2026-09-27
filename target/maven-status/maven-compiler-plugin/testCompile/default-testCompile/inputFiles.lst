@@ -1,9 +1,0 @@
-/home/cesars/Documentos/Personal/TRANSPORTEDECARGA/sunat-cpe-api/src/test/java/pe/encarga/sunatapi/controller/CpeControllerTest.java
-/home/cesars/Documentos/Personal/TRANSPORTEDECARGA/sunat-cpe-api/src/test/java/pe/encarga/sunatapi/service/NotaCreditoSendServiceTest.java
-/home/cesars/Documentos/Personal/TRANSPORTEDECARGA/sunat-cpe-api/src/test/java/pe/encarga/sunatapi/service/ZipNameValidatorTest.java
-/home/cesars/Documentos/Personal/TRANSPORTEDECARGA/sunat-cpe-api/src/test/java/pe/encarga/sunatapi/controller/NotaCreditoControllerTest.java
-/home/cesars/Documentos/Personal/TRANSPORTEDECARGA/sunat-cpe-api/src/test/java/pe/encarga/sunatapi/service/grt/GrtHttpClientTest.java
-/home/cesars/Documentos/Personal/TRANSPORTEDECARGA/sunat-cpe-api/src/test/java/pe/encarga/sunatapi/service/grt/ResponseGeneraXmlTest.java
-/home/cesars/Documentos/Personal/TRANSPORTEDECARGA/sunat-cpe-api/src/test/java/pe/encarga/sunatapi/service/SunatSendServiceTest.java
-/home/cesars/Documentos/Personal/TRANSPORTEDECARGA/sunat-cpe-api/src/test/java/pe/encarga/sunatapi/SunatCpeApiApplicationTests.java
-/home/cesars/Documentos/Personal/TRANSPORTEDECARGA/sunat-cpe-api/src/test/java/pe/encarga/sunatapi/service/CdrParserTest.java

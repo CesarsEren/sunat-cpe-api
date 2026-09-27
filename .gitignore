@@ -1,0 +1,95 @@
+# =====================================================
+# .gitignore — Java + Maven + Spring Boot (sunat-cpe-api)
+# =====================================================
+# Generado para el proyecto sunat-cpe-api
+# Stack: Java 8 + Spring Boot 1.5.8 + Maven + JAX-WS (SOAP/MTOM)
+
+# --- Maven: artefactos compilados y reportes ---
+target/
+!**/src/main/**/target/
+!**/src/test/**/target/
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.class
+
+# --- Maven: copias locales ---
+.mvn/wrapper/maven-wrapper.jar.bak
+
+# --- IDE: IntelliJ IDEA ---
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+build/
+
+# --- IDE: Eclipse / STS ---
+.classpath
+.project
+.settings/
+.factorypath
+.apt_generated
+.springBeans
+.sts4-cache
+bin/
+
+# --- IDE: NetBeans ---
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# --- IDE: VS Code ---
+.vscode/
+
+# --- Logs ---
+*.log
+logs/
+target/boot_*.log
+target/boot_*.err
+
+# --- Archivos temporales del SO ---
+.DS_Store
+Thumbs.db
+desktop.ini
+*~
+
+# --- Backups / edits en curso ---
+*.bak
+*.swp
+*.swo
+*.orig
+*.rej
+
+# --- Variables de entorno locales (credenciales) ---
+.env
+.env.local
+.env.*.local
+application-local.properties
+application-local.yml
+
+# --- Archivos generados por Maven Surefire ---
+/target/surefire-reports/
+
+# --- Archivos generados por el IDE en runtime ---
+hs_err_pid*
+replay_pid*
+
+# --- Outputs de Maven site / javadoc ---
+target/site/
+target/javadoc/
+
+# --- Archivos de aplicación generados en runtime ---
+*.pid
+*.pidfile
+
+# --- ignore HPROF (heap dumps) ---
+*.hprof
+
+# --- ignore scripts de arranque local (no los del repo) ---
+/run.sh
+/run.bat
